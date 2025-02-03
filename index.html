@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitor de XML</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    
+
+    <div class="container mt-4">
+        <div class="main-content">
+            <div class="header">
+                <div class="stats">
+                    <div class="stat-card">
+                        <p>Total de Notas</p>
+                        <p>{{ total_notas }}</p>
+                    </div>
+                    <div class="stat-card">
+                        <p>Total ISS</p>
+                        <p>{{ total_iss }}</p>
+                    </div>
+                    <div class="stat-card">
+                        <p>Total INSS</p>
+                        <p>{{ total_inss }}</p>
+                    </div>
+                </div>
+                
+                <!-- Filtro de data -->
+                <form method="GET" action="{{ url_for('index') }}" class="dates-form">
+                    <div class="form-row">
+                        <div class="col">
+                            <input type="date" name="start_date" class="form-control" placeholder="Data Inicial" value="{{ request.args.get('start_date') }}">
+                        </div>
+                        <div class="col">
+                            <input type="date" name="end_date" class="form-control" placeholder="Data Final" value="{{ request.args.get('end_date') }}">
+                        </div>
+                        <div class="col">
+                            <button type="submit" class="btn btn-primary">Filtrar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mensagens de Flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="table-container">
+                <div class="mb-3">
+                    <form method="POST" enctype="multipart/form-data" class="d-inline">
+                        <div class="input-group">
+                            <input type="file" name="file" accept=".xml" multiple class="form-control" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                            </div>
+                        </div>
+                    </form>
+                    <form method="POST" action="{{ url_for('clear_data') }}" class="d-inline ml-2">
+                        <button type="submit" class="btn btn-danger">Limpar Dados</button>
+                    </form>
+                </div>
+
+                <table class="table table-bordered table-hover mt-4">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Número</th>
+                            <th>Data</th>
+                            <th>Código Serviço</th>
+                            <th>Valor ISS</th>
+                            <th>Valor INSS</th>
+                            <th>Valor da Nota</th>
+                            <th>Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nota in data %}
+                        <tr>
+                            <td>{{ nota.numero }}</td>
+                            <td>{{ nota.data.strftime('%d/%m/%Y') }}</td>
+                            <td>{{ nota.codigo_servico }}</td>
+                            <td>{{ nota.valor_iss|format_currency_brl }}</td>
+                            <td>{{ nota.valor_inss|format_currency_brl }}</td>
+                            <td>{{ nota.valor_nota|format_currency_brl }}</td>
+                            <td>{{ nota.situacao }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhuma nota fiscal encontrada</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-3">
+                <a class="btn btn-primary" href="{{ url_for('download_csv') }}">Baixar CSV</a>
+                <a class="btn btn-success ml-2" href="{{ url_for('download_pdf') }}">Baixar PDF</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
